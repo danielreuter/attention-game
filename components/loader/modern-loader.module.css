@@ -1,0 +1,52 @@
+.container {
+  --diameter: 70px;
+  --width: 6px;
+  position: relative;
+  width: var(--diameter);
+  height: var(--diameter);
+}
+
+.spinner {
+  --diameter: 70px;
+  --width: 6px;
+  display: inline-block;
+  position: absolute;
+  width: var(--diameter);
+  height: var(--diameter);
+}
+
+.spinner div {
+  --diameter: 70px;
+  --width: 6px;
+  box-sizing: border-box;
+  display: block;
+  position: absolute;
+  width: calc(var(--diameter) - 2 * var(--width));
+  height: calc(var(--diameter) - 2 * var(--width));
+  margin: var(--width);
+  border: var(--width) solid hsl(var(--primary));
+  border-radius: 50%;
+  animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  border-color: hsl(var(--primary)) transparent transparent transparent;
+}
+
+.spinner div:nth-of-type(1) {
+  animation-delay: -0.45s;
+}
+
+.spinner div:nth-of-type(2) {
+  animation-delay: -0.3s;
+}
+
+.spinner div:nth-of-type(3) {
+  animation-delay: -0.15s;
+}
+
+@keyframes lds-ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
