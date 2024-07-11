@@ -13,23 +13,9 @@ export function AuthPage({ type }: { type: "sign-up" | "log-in" }) {
   const [isLoadingGoogle, setIsLoadingGoogle] = React.useState<boolean>(false);
   const isSignUp = type === "sign-up";
   return (
-    <>
-      <div className="relative h-screen flex flex-col items-center justify-center w-full">
-        {/* <Link
-          href="/login"
-          className={cn(
-            buttonVariants({ variant: "ghost" }),
-            "absolute right-4 top-4 md:right-8 md:top-8",
-          )}
-        >
-          Log In
-        </Link> */}
-        <div className="flex flex-col items-center gap-3  p-8 rounded-3xl">
-          <Link href="/">
-            <div className="relative z-20 flex items-center text-lg font-medium">
-              {/* <Wordmark className="h-14 w-14" /> */}
-            </div>
-          </Link>
+      <div className="h-[95vh] flex flex-col items-center justify-center w-full">
+        <div className="flex flex-col items-center gap-3  p-4 rounded-3xl w-full">
+
           <div className="mx-auto flex w-full flex-col justify-center space-y-2 sm:w-[350px]">
             <div className="mb-4 flex flex-col space-y-2 text-center ">
               <h1 className="text-2xl font-semibold tracking-tight">
@@ -49,7 +35,7 @@ export function AuthPage({ type }: { type: "sign-up" | "log-in" }) {
               )}{" "}
               Continue with GitHub
             </ProviderButton>
-            <ProviderButton
+            {/* <ProviderButton
               href="/api/auth/google"
               onClick={() => {
                 setIsLoadingGoogle(true);
@@ -61,7 +47,7 @@ export function AuthPage({ type }: { type: "sign-up" | "log-in" }) {
                 <GoogleLogo />
               )}{" "}
               Continue with Google
-            </ProviderButton>
+            </ProviderButton> */}
             <div className="relative py-4">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />
@@ -103,7 +89,6 @@ export function AuthPage({ type }: { type: "sign-up" | "log-in" }) {
           </div>
         </div>
       </div>
-    </>
   );
 }
 

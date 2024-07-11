@@ -22,7 +22,6 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <TooltipProvider delayDuration={0}>
-          <Header />
           <Suspense fallback={<Loading />}>
             {children}
           </Suspense>

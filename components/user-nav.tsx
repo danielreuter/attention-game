@@ -57,16 +57,6 @@ export async function UserNav({
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          {/* <DropdownMenuItem>
-            Profile
-          </DropdownMenuItem> */}
-          <DropdownMenuItem>
-            Billing
-            {/* <DropdownMenuShortcut>⌘B</DropdownMenuShortcut> */}
-          </DropdownMenuItem>
-          {/* <DropdownMenuItem>Settings</DropdownMenuItem> */}
-        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <form action={logout} className="w-full grow ">
           <DropdownMenuItem asChild>
@@ -78,7 +68,7 @@ export async function UserNav({
         <DropdownMenuSeparator />
         <div className="w-full p-1">
           <Button className="w-full" variant="default">
-            Upgrade to Premium
+            Upgrade Model
           </Button>
         </div>
       </DropdownMenuContent>

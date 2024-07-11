@@ -248,6 +248,6 @@ export const runSubmission = createServerAction()
         The submission is: ${submission}
       `,
     });
-    console.log("made submissiont thing", object)
+    revalidatePath("/");
     return object;
   });
