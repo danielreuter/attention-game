@@ -1,26 +1,61 @@
 {
-  "id": "16952787-951a-4033-bbb5-2a81911172b1",
+  "id": "c0b43f2f-83d2-45c8-9ba2-b9c5441c8011",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
+    "public.daily": {
+      "name": "daily",
+      "schema": "",
+      "columns": {
+        "date": {
+          "name": "date",
+          "type": "date",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "now()"
+        },
+        "game_id": {
+          "name": "game_id",
+          "type": "serial",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "daily_game_id_game_id_fk": {
+          "name": "daily_game_id_game_id_fk",
+          "tableFrom": "daily",
+          "tableTo": "game",
+          "columnsFrom": [
+            "game_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
     "public.game": {
       "name": "game",
       "schema": "",
       "columns": {
         "id": {
           "name": "id",
-          "type": "uuid",
+          "type": "serial",
           "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
+          "notNull": true
         },
-        "timestamp": {
-          "name": "timestamp",
-          "type": "timestamp",
+        "subject": {
+          "name": "subject",
+          "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
+          "notNull": true
         },
         "sentence": {
           "name": "sentence",
@@ -71,8 +106,12 @@
           "name": "oauth_account_user_id_user_id_fk",
           "tableFrom": "oauth_account",
           "tableTo": "user",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -80,7 +119,10 @@
       "compositePrimaryKeys": {
         "oauth_account_provider_name_provider_user_id_pk": {
           "name": "oauth_account_provider_name_provider_user_id_pk",
-          "columns": ["provider_name", "provider_user_id"]
+          "columns": [
+            "provider_name",
+            "provider_user_id"
+          ]
         }
       },
       "uniqueConstraints": {}
@@ -98,7 +140,7 @@
         },
         "game_id": {
           "name": "game_id",
-          "type": "uuid",
+          "type": "serial",
           "primaryKey": false,
           "notNull": true
         },
@@ -121,8 +163,12 @@
           "name": "play_game_id_game_id_fk",
           "tableFrom": "play",
           "tableTo": "game",
-          "columnsFrom": ["game_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "game_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -130,8 +176,12 @@
           "name": "play_user_id_user_id_fk",
           "tableFrom": "play",
           "tableTo": "user",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -206,8 +256,12 @@
           "name": "price_product_id_product_id_fk",
           "tableFrom": "price",
           "tableTo": "product",
-          "columnsFrom": ["product_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "product_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -272,6 +326,12 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
+        "play_id": {
+          "name": "play_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
         "content": {
           "name": "content",
           "type": "text",
@@ -292,7 +352,21 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "query_play_id_play_id_fk": {
+          "name": "query_play_id_play_id_fk",
+          "tableFrom": "query",
+          "tableTo": "play",
+          "columnsFrom": [
+            "play_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
@@ -335,6 +409,12 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
+        "play_id": {
+          "name": "play_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
         "content": {
           "name": "content",
           "type": "text",
@@ -349,7 +429,21 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "submission_play_id_play_id_fk": {
+          "name": "submission_play_id_play_id_fk",
+          "tableFrom": "submission",
+          "tableTo": "play",
+          "columnsFrom": [
+            "play_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
@@ -458,8 +552,12 @@
           "name": "subscription_user_id_user_id_fk",
           "tableFrom": "subscription",
           "tableTo": "user",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -467,8 +565,12 @@
           "name": "subscription_price_id_price_id_fk",
           "tableFrom": "subscription",
           "tableTo": "price",
-          "columnsFrom": ["price_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "price_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -543,12 +645,16 @@
         "user_email_unique": {
           "name": "user_email_unique",
           "nullsNotDistinct": false,
-          "columns": ["email"]
+          "columns": [
+            "email"
+          ]
         },
         "user_stripe_customer_id_unique": {
           "name": "user_stripe_customer_id_unique",
           "nullsNotDistinct": false,
-          "columns": ["stripe_customer_id"]
+          "columns": [
+            "stripe_customer_id"
+          ]
         }
       }
     }
@@ -557,17 +663,28 @@
     "public.pricing_plan_interval": {
       "name": "pricing_plan_interval",
       "schema": "public",
-      "values": ["day", "week", "month", "year"]
+      "values": [
+        "day",
+        "week",
+        "month",
+        "year"
+      ]
     },
     "public.pricing_type": {
       "name": "pricing_type",
       "schema": "public",
-      "values": ["one_time", "recurring"]
+      "values": [
+        "one_time",
+        "recurring"
+      ]
     },
     "public.provider_names": {
       "name": "provider_names",
       "schema": "public",
-      "values": ["google", "github"]
+      "values": [
+        "google",
+        "github"
+      ]
     },
     "public.subscription_status": {
       "name": "subscription_status",

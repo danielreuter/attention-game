@@ -9,4 +9,4 @@ Built with:
 - Drizzle ORM
 - Neon PostgreSQL
 - Tailwind
-- ZSA# attention-game
+- ZSA

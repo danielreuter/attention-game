@@ -4,39 +4,111 @@ import { anthropic } from "@ai-sdk/anthropic";
 import { openai } from "@ai-sdk/openai";
 import { generateObject, generateText } from "ai";
 import { z } from "zod";
-import { createServerAction } from "zsa";
+import { createServerAction, createServerActionProcedure } from "zsa";
 import { extractSequence } from "../utils";
-import { unstable_noStore } from "next/cache";
-import { Position, Sequence, problem, rawProblem, sequence } from "@/lib/types";
-import { zodToJsonSchema } from "zod-to-json-schema";
-import { db, schema } from "@/lib/db";
-import { jaccardDistance } from "drizzle-orm";
+import { revalidatePath, unstable_noStore } from "next/cache";
+import { Position, Sequence, problem, gameSetup, sequence } from "@/lib/types";
+import { auth } from "../auth";
+import { db, schema } from "../db";
+import { eq, gt, sql } from "drizzle-orm";
 
-export const createProblem = createServerAction()
-  .input(z.void())
-  .output(problem)
+const action = createServerActionProcedure()
+  .handler(auth)
+
+const protectedAction = createServerActionProcedure(action)
+  .handler(async ({ ctx }) => {
+    if (ctx.user) return ctx;
+    throw new Error("Not logged in");
+  })
+
+const adminAction = createServerActionProcedure(protectedAction)
+  .handler(async ({ ctx }) => {
+    if (ctx.user.isAdmin) return ctx;
+    throw new Error("Not an admin");
+  })
+
+export const getAllGames = action
+  .createServerAction()
   .handler(async () => {
-    console.log("starting shit");
-    unstable_noStore();
-
-    const { object } = await generateObject({
-      model: anthropic("claude-3-5-sonnet-20240620"),
-      schema: rawProblem,
-      temperature: 0.8,
-      prompt: `Your task is to create a simple question-and-answer pair.
-        The question should consist of about 8 words. If you were to list \
-        the 1000 questions in the English language most likely to be answerable \
-        by any middle school student, it should be on that list.
-        make it about geography
-      `,
-    });
-    return {
-      ...object,
-      sequence: extractSequence(object.sentence),
-    };
+    return db.query.game.findMany();
   });
 
-const genericAttentionSchema = z.number().array();
+export const createGame = action // todo: make this admin
+  .createServerAction()
+  .input(gameSetup)
+  .handler(async ({ input }) => {
+    const game = await db
+      .insert(schema.game)
+      .values(input);
+    revalidatePath("/create-game");
+    return game;
+  });
+
+
+
+
+export const getProblem = action
+  .createServerAction()
+  .input(z.void())
+  .output(problem)
+  .handler(async ({ ctx: { user }}) => {
+    const response = await db.query.daily.findFirst({
+      where: sql`date = CURRENT_DATE`,
+      with: {
+        game: {
+          with: {
+            plays: {
+              where: eq(schema.play.userId, user?.id ?? ""),
+              limit: 1, // should be one or zero
+              with: {
+                submission: true,
+                queries: true,
+              }
+            }
+          }
+        }
+      }
+    })
+
+    if (response) {
+      return {
+        ...response.game,
+        sequence: extractSequence(response.game.sentence),
+        play: response.game.plays[0] ?? null,
+      }
+    }
+
+    // make new daily, attaching a fresh game
+    const allDailies = await db.query.daily.findMany({
+      with: { game: true }
+    });
+
+    const highestId = allDailies.reduce((maxId, { game }) => {
+      return game.id > maxId ? game.id : maxId;
+    }, -1);
+
+    const newGame = await db.query.game.findFirst({
+      where: gt(schema.game.id, highestId),
+    })
+
+    if (!newGame) throw new Error("Ran out of games")
+
+    await db
+      .insert(schema.daily)
+      .values({
+        gameId: newGame.id,
+      })
+
+    return {
+      ...newGame,
+      sequence: extractSequence(newGame.sentence),
+      play: null,
+    }
+  });
+
+
+
+
 
 export const runQuery = createServerAction()
   .input(
@@ -153,112 +225,6 @@ function parseAIScores(response: string, length: number): number[] {
   return scores;
 }
 
-// export const runQuery2 = createServerAction()
-//   .input(
-//     z.object({
-//       query: z.string(),
-//       sequence,
-//     }),
-//   )
-//   .output(sequence)
-//   .handler(async ({ input: { query, sequence } }) => {
-//     unstable_noStore();
-//     const attentionValue = z
-//       .number()
-//       .int()
-//       .min(-5)
-//       .max(5)
-
-//       console.log("schema", JSON.stringify(zodToJsonSchema(z.object({
-//       ...Object.fromEntries(
-//         sequence.map((position, i) => [String(i), attentionValue])
-//       )
-//     })), null, 2))
-
-//     console.log(query, sequence)
-
-//     const { object, usage } = await generateObject({
-//       // model: anthropic("claude-3-5-sonnet-20240620"),
-//       model: openai("gpt-4o"),
-//       schema: z.object({
-//         ...Object.fromEntries(
-//           sequence.map((_, i) => [String(i), z
-//             .number()
-//             .int()
-//             .min(-5)
-//             .max(5)
-//             .describe("Continuous score")
-//           ])
-//         )
-//       }),
-//       system: `
-//         You are playing a game with a user, giving them clues to help them guess \
-//         a sequence of words.
-
-//         This is the sequence:
-//         ${sequence.map((element, i) => {
-//           return `${i}: \n${element.value}`;
-//         }).join("\n")}
-
-//         The user has a scratchpad where they write down their notes \
-//         at each position. Each turn, they will show you their scratchpad (some positions \
-//         might be [blank]) as well as a query. Your job is to respond to this query from \
-//         the perspective of each position, providing a score with the following rubric:
-
-//         -5 = absolutely not
-//         -4 = hell no
-//         -3 = no
-//         -2 = I'd say no
-//         -1 = vaguely no
-//         0 = neutral/unsure/ambiguous
-//         1 = ever so slightly yes
-//         2 = I'd say yes
-//         3 = yes
-//         4 = hell yes
-//         5 = absolutely yes
-
-//         For example, they might ask "am I a noun?" or "am I right?" or "am I distinctive?" \
-//         Some of these questions are just related to the underlying word, while some rely on the relation \
-//         between the user's notes and the underlying word. Make sure to take this into account.
-
-//         Think step-by-step about how you'll answer the query before you start, for later QA.
-
-//         Remember that the user is asking questions from the perspective of the *underlying word* -- the scratchpad \
-//         just tells you what they currently think about each word.
-
-//         Make sure to use the intermediate scores when doing so provides helpful information for the user.
-//       `,
-//       prompt: `
-//         Here is my scratchpad:
-//         ${sequence.map((element, i) => {
-//           return `${i}: ${element.guess ? element.guess : "[blank]"}`;
-//         }).join("\n")}
-
-//         Here is my query: ${query}
-//       `,
-//     });
-
-//     console.log(JSON.stringify(object, null, 2))
-//     console.log("our usage", usage)
-//     return sequence.map((element, i) => {
-//       const attentionValue = object[String(i)];
-//       if (attentionValue === undefined) {
-//         // I believe this is not possible due to the schema design
-//         throw new Error("Missing attention value");
-//       }
-//       let value = attentionValue;
-//       if (attentionValue > 5) {
-//         value = 5;
-//       } else if (attentionValue < -5) {
-//         value = -5;
-//       }
-//       return {
-//         ...element,
-//         currentAttention: value,
-//       };
-//     });
-//   });
-
 export const runSubmission = createServerAction()
   .input(
     z.object({
@@ -285,38 +251,3 @@ export const runSubmission = createServerAction()
     console.log("made submissiont thing", object)
     return object;
   });
-
-/**
- * Only hacky thing here is that we ask the language model to write each array element's
- * position to keep it on track
- */
-function createAttentionSchema(sequence: Sequence) {
-  return z
-    .object({
-      position: z
-        .number()
-        .describe(
-          "The position in the sequence. Make sure to cover every position.",
-        )
-        .int()
-        .nonnegative()
-        .max(sequence.length - 1),
-      value: z
-        .number()
-        .min(-5)
-        .max(5)
-        .describe(
-          "5 = extremely positive activation, -5 = extremely negative activation, 0 = ambivalent",
-        ),
-    })
-    .array()
-    .length(sequence.length);
-}
-
-/**
- *
- * Necessary because language model writes redundant position information
- */
-function unnestAttentionItem(item: { position: number; value: number }) {
-  return item.value;
-}

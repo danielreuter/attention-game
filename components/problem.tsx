@@ -24,12 +24,7 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import { z } from "zod";
 import { spinner } from "./spinner";
 import { ModernLoader } from "./loader/modern-loader";
-
-export type PositionData = {
-  value: string;
-  guess: string;
-  currentAttention?: number;
-};
+import * as DialogPrimitive from "@radix-ui/react-dialog";
 
 export function ProblemDisplay({ problem }: { problem: Problem }) {
 
@@ -91,7 +86,7 @@ export function ProblemDisplay({ problem }: { problem: Problem }) {
             <p>Submit</p> <MoveRight className="h-4" />
           </div>
         </DialogTrigger>
-        {submissionResult !== undefined ? (
+        {submissionResult === undefined ? (
           <DialogContent className="sm:rounded-none">
               <DialogHeader>
                 <DialogTitle>Submission</DialogTitle>
@@ -129,7 +124,7 @@ export function ProblemDisplay({ problem }: { problem: Problem }) {
                 onChange={(e) => setSubmission(e.target.value)}
               ></input>
               <div className="flex w-full justify-end">
-                <Button type="submit">Submit</Button>
+                <DialogPrimitive.Close><Button asChild><p>Submit</p></Button></DialogPrimitive.Close>
               </div>
             </form>
             </DialogContent>

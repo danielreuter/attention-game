@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/header";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Suspense } from "react";
+import { Loading } from "@/components/loading";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,7 +23,9 @@ export default function RootLayout({
       <body className={inter.className}>
         <TooltipProvider delayDuration={0}>
           <Header />
-          {children}
+          <Suspense fallback={<Loading />}>
+            {children}
+          </Suspense>
         </TooltipProvider>
       </body>
     </html>

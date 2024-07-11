@@ -3,7 +3,6 @@
 import { lucia } from "@/lib/auth";
 import { Session, User } from "lucia";
 import { cookies } from "next/headers";
-import { unstable_cache } from "next/cache";
 import { NeonDatabase } from "drizzle-orm/neon-serverless";
 import * as schema from "@/lib/db/schema";
 
@@ -37,7 +36,7 @@ export async function auth(): Promise<
       );
     }
   } catch (error) {
-    console.error("Error setting cookies", error);
+    console.error("Expected error setting cookies");
     // Next.js throws error when attempting to set cookies when rendering page
   }
   return result;

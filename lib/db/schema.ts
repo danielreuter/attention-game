@@ -10,6 +10,8 @@ import {
   foreignKey,
   varchar,
   pgEnum,
+  date,
+  serial,
 } from "drizzle-orm/pg-core";
 import {
   BuildQueryResult,
@@ -82,9 +84,23 @@ export const sessionRelations = relations(session, ({ one }) => ({
  * Game
  */
 
+export const daily = pgTable("daily", {
+  date: date("date").primaryKey().defaultNow(),
+  gameId: serial("game_id")
+    .notNull()
+    .references(() => game.id),
+});
+
+export const dailyRelations = relations(daily, ({ one }) => ({
+  game: one(game, {
+    fields: [daily.gameId],
+    references: [game.id],
+  }),
+}));
+
 export const game = pgTable("game", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  timestamp: timestamp("timestamp").notNull().defaultNow(),
+  id: serial("id").primaryKey(),
+  subject: text("subject").notNull(),
   sentence: text("sentence").notNull(),
   isPractice: boolean("is_practice").notNull().default(false),
 });
@@ -95,7 +111,7 @@ export const gameRelations = relations(game, ({ many }) => ({
 
 export const play = pgTable("play", {
   id: uuid("id").primaryKey().defaultRandom(),
-  gameId: uuid("game_id")
+  gameId: serial("game_id")
     .notNull()
     .references(() => game.id),
   userId: text("user_id")
@@ -122,16 +138,36 @@ export const playRelations = relations(play, ({ one, many }) => ({
 
 export const query = pgTable("query", {
   id: uuid("id").primaryKey().defaultRandom(),
+  playId: uuid("play_id")
+    .notNull()
+    .references(() => play.id),
   content: text("content").notNull(),
   rawResponse: text("raw_response").notNull(),
   response: text("response").notNull(),
 });
 
+export const queryRelations = relations(query, ({ one }) => ({
+  play: one(play, {
+    fields: [query.playId],
+    references: [play.id],
+  }),
+}));
+
 export const submission = pgTable("submission", {
   id: uuid("id").primaryKey().defaultRandom(),
+  playId: uuid("play_id")
+    .notNull()
+    .references(() => play.id),
   content: text("content").notNull(),
   isCorrect: boolean("is_correct").notNull(),
 });
+
+export const submissionRelations = relations(submission, ({ one }) => ({
+  play: one(play, {
+    fields: [submission.playId],
+    references: [play.id],
+  }),
+}));
 
 /**
  *

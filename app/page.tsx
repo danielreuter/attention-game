@@ -1,5 +1,8 @@
-export default function Home() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24"></main>
-  );
+import { ProblemDisplay } from "@/components/problem";
+import { SomethingWrong } from "@/components/something-wrong";
+import { getProblem } from "@/lib/game/actions";
+
+export default async function Home() {
+  const [problem] = await getProblem();
+  return problem ? <ProblemDisplay problem={problem} /> : <SomethingWrong />
 }

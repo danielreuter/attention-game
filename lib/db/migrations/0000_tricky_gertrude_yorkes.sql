@@ -22,9 +22,14 @@ EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
 --> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "daily" (
+	"date" date PRIMARY KEY DEFAULT now() NOT NULL,
+	"game_id" serial NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "game" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"timestamp" timestamp DEFAULT now() NOT NULL,
+	"id" serial PRIMARY KEY NOT NULL,
+	"subject" text NOT NULL,
 	"sentence" text NOT NULL,
 	"is_practice" boolean DEFAULT false NOT NULL
 );
@@ -38,7 +43,7 @@ CREATE TABLE IF NOT EXISTS "oauth_account" (
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "play" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"game_id" uuid NOT NULL,
+	"game_id" serial NOT NULL,
 	"user_id" text NOT NULL,
 	"submission_id" uuid
 );
@@ -66,6 +71,7 @@ CREATE TABLE IF NOT EXISTS "product" (
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "query" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"play_id" uuid NOT NULL,
 	"content" text NOT NULL,
 	"raw_response" text NOT NULL,
 	"response" text NOT NULL
@@ -79,6 +85,7 @@ CREATE TABLE IF NOT EXISTS "session" (
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "submission" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"play_id" uuid NOT NULL,
 	"content" text NOT NULL,
 	"is_correct" boolean NOT NULL
 );
@@ -116,6 +123,12 @@ CREATE TABLE IF NOT EXISTS "user" (
 );
 --> statement-breakpoint
 DO $$ BEGIN
+ ALTER TABLE "daily" ADD CONSTRAINT "daily_game_id_game_id_fk" FOREIGN KEY ("game_id") REFERENCES "public"."game"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
  ALTER TABLE "oauth_account" ADD CONSTRAINT "oauth_account_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
@@ -135,6 +148,18 @@ END $$;
 --> statement-breakpoint
 DO $$ BEGIN
  ALTER TABLE "price" ADD CONSTRAINT "price_product_id_product_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."product"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "query" ADD CONSTRAINT "query_play_id_play_id_fk" FOREIGN KEY ("play_id") REFERENCES "public"."play"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "submission" ADD CONSTRAINT "submission_play_id_play_id_fk" FOREIGN KEY ("play_id") REFERENCES "public"."play"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
